@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vicci &amp; Lexi Karaoke · Add a song</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="remote-page">
+  <main class="remote-shell">
+    <header class="remote-header"><div class="brand"><span class="brand-mark">✦</span><span>Vicci &amp; Lexi <b>Karaoke</b></span></div><div class="live-pill"><span></span> ROOM <b id="room-code">······</b></div></header>
+    <section class="remote-intro"><span class="eyebrow pink">YOU'RE ON THE LIST</span><h1>Pick your<br><em>moment.</em></h1><p>Search a song, tap a karaoke video, and add it to the TV queue.</p></section>
+    <div class="remote-tabs"><button id="tab-search" class="tab active">Search songs</button><button id="tab-favorites" class="tab">My songs</button><button id="tab-link" class="tab">Paste a link</button></div>
+    <section class="remote-card">
+      <label for="singer-name">YOUR NAME</label><input id="singer-name" maxlength="32" placeholder="Who’s singing?" autocomplete="name">
+      <div id="search-panel" class="song-panel"><label for="search-input">FIND A KARAOKE TRACK</label><div class="search-row"><input id="search-input" type="search" placeholder="Song title or artist"><button id="search-btn" class="button secondary">Search</button></div><p id="search-tip" class="field-tip">Type a song title or artist.</p><div id="search-setup" class="setup-note" hidden>To enable song search, add a YouTube Data API key to <strong>youtube-api-key.txt</strong> on the laptop, then refresh this page. See the setup guide in the ZIP.</div><div id="search-results" class="search-results"></div></div>
+      <div id="favorites-panel" class="song-panel" hidden><div class="my-song-tabs"><button id="my-favorites" class="mini-btn active">★ Favorites</button><button id="my-history" class="mini-btn">Recently queued</button></div><p class="field-tip">Saved on this phone for your next karaoke night.</p><div id="favorites-results" class="search-results"></div></div>
+      <div id="link-panel" class="song-panel" hidden><label for="song-link">YOUTUBE VIDEO LINK</label><input id="song-link" type="url" inputmode="url" placeholder="https://youtu.be/…" autocomplete="off"><p class="field-tip">Open YouTube, find a karaoke version, then share or paste its link here.</p><button id="add-btn" class="button primary add-button">+ Add to queue</button></div>
+      <p id="feedback" class="feedback" role="status"></p>
+    </section>
+    <section class="remote-queue"><div class="remote-queue-head"><div><span class="eyebrow">ON THE TV</span><h2>Tonight’s lineup</h2></div><span id="queue-count" class="count-badge">0 queued</span></div><div id="current-card" class="current-card"><span class="playing-icon">♫</span><div><span class="eyebrow pink">NOW SINGING</span><strong id="current-title">Waiting for a song</strong><small id="current-by">Be the first to add one</small></div></div><div class="remote-controls"><button id="restart-btn" class="button ghost" disabled title="Restart song">↺</button><button id="rewind-btn" class="button ghost" disabled title="Rewind 10 seconds">−10s</button><button id="pause-btn" class="button ghost" disabled>▶ Play</button><button id="forward-btn" class="button ghost" disabled title="Forward 10 seconds">+10s</button><button id="next-btn" class="button ghost" disabled>Next →</button></div><div class="reaction-heading eyebrow">CHEER FOR THE SINGER</div><div class="reaction-row"><button data-reaction="clap" class="reaction-btn">👏<span>Clap</span></button><button data-reaction="cheer" class="reaction-btn">🎉<span>Cheer</span></button><button data-reaction="party" class="reaction-btn">🥳<span>Party</span></button><button data-reaction="airhorn" class="reaction-btn">🎺<span>Horn</span></button><button data-reaction="fire" class="reaction-btn">🔥<span>Fire</span></button></div><div id="queue-list" class="remote-queue-list"></div></section>
+    <footer class="remote-footer">Keep this page open to watch the queue update live.</footer>
+  </main>
+  <script src="/remote.js"></script>
+</body>
+</html>

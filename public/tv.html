@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vicci &amp; Lexi Karaoke · TV</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="tv-page">
+  <main class="tv-shell">
+    <header class="tv-header">
+      <div class="brand"><span class="brand-mark">✦</span><span>Vicci &amp; Lexi <b>Karaoke</b></span></div>
+      <div class="live-pill"><span></span> LIVE ROOM <b id="room-code">······</b></div>
+    </header>
+    <section class="tv-grid">
+      <div class="stage-panel">
+        <div class="stage-top"><span class="eyebrow">THE MAIN STAGE</span><button id="fullscreen-btn" class="stage-fullscreen">⛶ Fullscreen</button></div>
+        <div class="video-wrap"><div id="player"></div><div id="stage-empty" class="stage-empty"><span class="empty-disc">♫</span><h1>Your stage is ready.</h1><p>Scan the code and add your first song.</p></div><div id="countdown" class="countdown" hidden><span>GET READY</span><strong id="countdown-number">3</strong></div><div id="reaction-overlay" class="reaction-overlay" aria-live="polite"></div></div>
+        <div class="now-bar"><div><span class="eyebrow pink">NOW SINGING</span><h2 id="current-title">Waiting for the first song</h2><p id="current-by">Your next performance starts here.</p></div><button id="start-btn" class="button primary" hidden>▶ Start singing</button></div>
+        <div id="player-note" class="player-note" hidden></div>
+      </div>
+      <aside class="side-panel">
+        <div class="join-card"><div class="join-copy"><span class="eyebrow">YOUR PHONE IS THE REMOTE</span><h2>Join the party.</h2><p>Scan to add a karaoke song to the queue.</p></div><div id="qr" class="qr-box"></div><div class="join-bottom"><span>PARTY CODE</span><strong id="join-code">······</strong></div><p class="join-url" id="join-url"></p></div>
+        <div class="queue-card"><div class="queue-heading"><div><span class="eyebrow">UP NEXT</span><h2>The queue <span id="queue-count">0</span></h2></div><button id="skip-btn" class="button ghost" disabled>Skip song →</button></div><div id="queue-list" class="tv-queue"><p class="queue-empty">The spotlight is yours. Add a song to get started.</p></div></div>
+      </aside>
+    </section>
+    <footer class="tv-footer"><span>Made for living room singalongs</span><span>Powered by YouTube videos · Ads may appear</span></footer>
+  </main>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="/vendor/qrcode.js"></script>
+  <script src="/tv.js"></script>
+</body>
+</html>
