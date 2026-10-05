@@ -117,7 +117,7 @@ const server = http.createServer(async (req, res) => {
       if (state.queue.length >= 50) return send(res, 429, { error: 'The queue is full.' });
       const fallback = `YouTube video · ${id}`;
       const item = { id: crypto.randomUUID(), videoId: id, title: String(data.title || '').trim().slice(0, 140) || await titleFor(id) || fallback, by: String(data.by || '').trim().slice(0, 32) || 'Guest' };
-      if (!state.current) { state.current = item; state.playback = 'paused'; }
+      if (!state.current) { state.current = item; state.playback = 'playing'; }
       else if (data.position === 'next') state.queue.unshift(item);
       else state.queue.push(item);
       publish();
