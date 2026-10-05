@@ -4,6 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Vicci &amp; Lexi Karaoke · TV</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/mic.css">
 </head>
 <body class="tv-page">
   <main class="tv-shell">
@@ -16,6 +17,7 @@
         <div class="stage-top"><span class="eyebrow">THE MAIN STAGE</span><button id="fullscreen-btn" class="stage-fullscreen">⛶ Fullscreen</button></div>
         <div class="video-wrap"><div id="player"></div><div id="stage-empty" class="stage-empty"><span class="empty-disc">♫</span><h1>Your stage is ready.</h1><p>Scan the code and add your first song.</p></div><div id="countdown" class="countdown" hidden><span>GET READY</span><strong id="countdown-number">3</strong></div><div id="reaction-overlay" class="reaction-overlay" aria-live="polite"></div></div>
         <div class="now-bar"><div><span class="eyebrow pink">NOW SINGING</span><h2 id="current-title">Waiting for the first song</h2><p id="current-by">Your next performance starts here.</p></div><button id="start-btn" class="button primary" hidden>▶ Start singing</button></div>
+        <div class="tv-mic-bar"><button id="tv-mic-btn" class="button ghost" type="button">🎤 Enable phone mic</button><span id="tv-mic-status">Enable this before a singer starts the mic on their phone.</span></div>
         <div id="player-note" class="player-note" hidden></div>
       </div>
       <aside class="side-panel">
@@ -28,5 +30,6 @@
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="/vendor/qrcode.js"></script>
   <script src="/tv.js"></script>
+  <script src="/tv-mic.js"></script>
 </body>
 </html>

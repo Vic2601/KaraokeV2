@@ -20,6 +20,14 @@ The URL is public, so the TV and phones can be on different networks. Keep the T
 
 On the phone, **My songs** saves favorites and recently queued tracks on that phone. The lineup page has Play/Pause, Next, restart, 10-second skip buttons, and cheer buttons. The TV shows cheers and a short countdown between songs.
 
+## Use a phone as a microphone on the online site
+
+1. Open the full TV host link from Render Logs. On the TV, tap **Enable phone mic** once to allow sound.
+2. On a singer's phone, open the remote over HTTPS, tap **Use phone as mic**, and allow microphone access. Only one phone can use the mic at a time.
+3. Tap **Stop microphone** on the phone when finished, or **Disable phone mic** on the TV. Keep the phone away from the TV speakers to reduce feedback.
+
+The TV browser must support WebRTC and Web Audio. The phone and TV should be on the same Wi-Fi for this direct audio connection. The Render server only exchanges connection messages; it does not relay the voice. There is no TURN relay, so the mic may fail across different networks or on some smart TV browsers. The song queue and remote controls still work if the mic is unsupported. A phone browser needs HTTPS to request microphone access; the Render site provides HTTPS. The local HTTP version on another device cannot request a phone mic in most browsers.
+
 The computer running the server must stay on. If Windows Firewall asks, allow Node.js on **private networks**. If the TV cannot open the address, check that the TV and computer are on the same network and that your router allows devices to talk to each other.
 
 ## Move the server to another laptop
@@ -49,11 +57,11 @@ The online search feature uses YouTube's official API and is subject to its quot
 - YouTube may show ads in embedded videos. This app cannot remove or skip them.
 - Some creators disable embedding for their videos; choose another video if one will not play.
 - If the TV player rejects a queued video, it searches for another karaoke version of the same song and tries a few alternatives automatically. This needs the YouTube API key and uses one search request. If none works, choose another result on the phone.
-- A browser may require one tap on **Start singing** before it allows sound. Later queued videos normally advance automatically, but TV browsers differ.
+- The first queued song attempts to play automatically, and the TV advances when a video ends. If the TV browser blocks playback with sound, tap **Start singing** once on the TV. Browser autoplay rules can differ.
 - The queue is held in memory and clears when the server restarts. A new party code is made each time.
 - Anyone with the party link on your local network can add songs. Run this only on a trusted home network.
 - The old site's preloaded song videos were not copied into the active catalog because YouTube blocks them in ordinary embeds. Search results use YouTube's `videoEmbeddable=true` filter, though an individual video may still become unavailable later.
-- The older site's phone microphone and pitch controls are not included. Browser microphone access on a local HTTP address is restricted, and YouTube's embedded player does not expose its audio for pitch shifting.
+- Pitch controls are not included because YouTube's embedded player does not expose its audio for pitch shifting.
 - The older site's host approval gate, AI DJ, and alternate video streaming fallback are not included. This local version uses the official YouTube embedded player and admits anyone with the room link on the trusted home network.
 
 QR code generation uses [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator), MIT licensed, by Kazuhiko Arase.

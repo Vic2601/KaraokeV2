@@ -1,0 +1,6 @@
+.tv-mic-bar{display:flex;align-items:center;gap:12px;padding:0 26px 20px;color:#bdb0cd;font-size:12px}
+.tv-mic-bar .button{font-size:12px}
+.mic-card{margin-top:19px;padding:16px;border:1px solid #ffffff20;border-radius:14px;background:#ffffff0b}
+.mic-card .button{display:block;width:100%;margin-top:11px}
+.mic-card p{color:#bdb0cd;font-size:12px;line-height:1.45;margin:10px 0 0}
+@media(max-width:600px){.tv-mic-bar{padding:0 15px 15px;flex-wrap:wrap}}

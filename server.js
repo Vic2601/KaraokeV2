@@ -12,6 +12,9 @@ const hostKey = crypto.randomBytes(16).toString('hex');
 const state = { room, current: null, queue: [], playback: 'paused', command: null, reaction: null, revision: 0 };
 const listeners = new Set();
 let lastReactionAt = 0;
+const micTvListeners = new Set();
+const micRemoteListeners = new Map();
+let activeMic = null;
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png' };
 
 function localAddress() {
@@ -42,6 +45,19 @@ function publish() {
   const message = `data: ${JSON.stringify(snapshot())}\n\n`;
   for (const res of listeners) { try { res.write(message); } catch { listeners.delete(res); } }
 }
+function micSend(target, message) {
+  const receivers = target === 'tv' ? micTvListeners : micRemoteListeners.get(target);
+  if (!receivers) return;
+  const wire = `data: ${JSON.stringify(message)}\n\n`;
+  for (const res of receivers) { try { res.write(wire); } catch { receivers.delete(res); } }
+}
+function stopMic(reason = 'Microphone disconnected.') {
+  if (!activeMic) return;
+  const id = activeMic;
+  activeMic = null;
+  micSend('tv', { type: 'stop', id, reason });
+  micSend(id, { type: 'stop', reason });
+}
 function videoId(input) {
   try {
     const u = new URL(input.trim());
@@ -59,7 +75,7 @@ async function body(req) {
   let raw = '';
   for await (const chunk of req) {
     raw += chunk;
-    if (raw.length > 10000) throw new Error('Request is too large');
+    if (raw.length > 30000) throw new Error('Request is too large');
   }
   try { return JSON.parse(raw || '{}'); } catch { throw new Error('Invalid JSON'); }
 }
@@ -93,6 +109,51 @@ const server = http.createServer(async (req, res) => {
       listeners.add(res);
       req.on('close', () => listeners.delete(res));
       return;
+    }
+    if (p === '/api/mic/events' && req.method === 'GET') {
+      const role = url.searchParams.get('role');
+      const id = url.searchParams.get('id');
+      if (role === 'tv' && url.searchParams.get('host') !== hostKey) return send(res, 403, { error: 'TV controls only.' });
+      if (role === 'remote' && (url.searchParams.get('room') !== room || !/^[a-f0-9-]{8,64}$/i.test(id || ''))) return send(res, 403, { error: 'Invalid phone session.' });
+      if (!['tv', 'remote'].includes(role)) return send(res, 400, { error: 'Invalid microphone role.' });
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+      res.write(': connected\n\n');
+      const peers = role === 'tv' ? micTvListeners : (micRemoteListeners.get(id) || new Set());
+      if (role === 'remote') micRemoteListeners.set(id, peers);
+      peers.add(res);
+      req.on('close', () => {
+        peers.delete(res);
+        if (role === 'remote' && peers.size === 0) micRemoteListeners.delete(id);
+        if (role === 'remote' && activeMic === id) setTimeout(() => {
+          if (activeMic === id && !micRemoteListeners.has(id)) stopMic('Phone disconnected.');
+        }, 10000);
+        if (role === 'tv' && activeMic && micTvListeners.size === 0) setTimeout(() => {
+          if (activeMic && micTvListeners.size === 0) stopMic('TV disconnected.');
+        }, 10000);
+      });
+      return;
+    }
+    if (p === '/api/mic/signal' && req.method === 'POST') {
+      const data = await body(req);
+      const role = data.role;
+      if (role === 'tv' && req.headers['x-host-key'] !== hostKey) return send(res, 403, { error: 'TV controls only.' });
+      if (role === 'remote' && data.room !== room) return send(res, 403, { error: 'This party code is no longer active.' });
+      if (!['tv', 'remote'].includes(role) || !['offer', 'answer', 'stop'].includes(data.type)) return send(res, 400, { error: 'Invalid microphone signal.' });
+      const id = String(data.id || '');
+      if (!/^[a-f0-9-]{8,64}$/i.test(id)) return send(res, 400, { error: 'Invalid microphone session.' });
+      if (role === 'remote' && data.type === 'offer') {
+        if (activeMic && activeMic !== id) return send(res, 409, { error: 'Another phone is using the microphone. Try again after they stop.' });
+        if (!micTvListeners.size) return send(res, 409, { error: 'Enable the phone mic on the TV first.' });
+        if (typeof data.sdp !== 'string' || data.sdp.length > 20000) return send(res, 400, { error: 'Invalid microphone offer.' });
+        activeMic = id;
+        micSend('tv', { type: 'offer', id, sdp: data.sdp, name: String(data.name || 'Singer').slice(0, 32) });
+        return send(res, 200, { ok: true });
+      }
+      if (activeMic !== id) return send(res, 409, { error: 'Microphone session has ended.' });
+      if (data.type === 'stop') { stopMic(); return send(res, 200, { ok: true }); }
+      if (role !== 'tv' || data.type !== 'answer' || typeof data.sdp !== 'string' || data.sdp.length > 20000) return send(res, 400, { error: 'Invalid microphone answer.' });
+      micSend(id, { type: 'answer', sdp: data.sdp });
+      return send(res, 200, { ok: true });
     }
     if (p === '/api/search' && req.method === 'GET') {
       const key = apiKey();
@@ -171,3 +232,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`\nVicci & Lexi Karaoke is ready\nTV:     ${publicOrigin}/tv?host=${hostKey}\nPhones: ${publicOrigin}/remote?room=${room}\nParty code: ${room}\n`);
 });
+setInterval(() => {
+  for (const res of [...micTvListeners, ...[...micRemoteListeners.values()].flatMap(set => [...set])]) {
+    try { res.write(': keepalive\n\n'); } catch {}
+  }
+}, 25000);

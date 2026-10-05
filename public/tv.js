@@ -13,11 +13,18 @@ let lastCommandSeq = 0;
 let lastReactionSeq = 0;
 let audioContext = null;
 let autoplayBlocked = false;
+let actuallyPlaying = false;
 let countdownTimer = null;
 
 function text(id, value) { $(id).textContent = value; }
 function note(message) { $('player-note').textContent = message; $('player-note').hidden = !message; }
 function thumb(id) { return `https://i.ytimg.com/vi/${encodeURIComponent(id)}/mqdefault.jpg`; }
+async function roomPost(action) {
+  const res = await fetch('/api/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: state.room, action }) });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error || 'Action failed');
+  return body;
+}
 async function hostPost(route, data = {}) {
   const res = await fetch(route, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Host-Key': hostKey }, body: JSON.stringify(data) });
   const body = await res.json();
@@ -58,11 +65,13 @@ function render(next) {
   text('current-title', next.current?.title || 'Waiting for the first song');
   text('current-by', next.current ? `Singing: ${next.current.by}` : 'Your next performance starts here.');
   $('stage-empty').hidden = !!next.current;
-  $('start-btn').hidden = !next.current || (next.playback === 'playing' && !autoplayBlocked);
+  $('start-btn').hidden = !next.current || (next.playback === 'playing' && actuallyPlaying && !autoplayBlocked);
   renderQueue(next.queue);
   if (next.current?.id !== prior) {
     advancing = false;
     autoplayBlocked = false;
+    actuallyPlaying = false;
+    $('start-btn').hidden = !next.current;
     note('');
     syncPlayer();
   } else if (priorPlayback !== next.playback) applyPlayback();
@@ -86,7 +95,7 @@ function startCountdown() {
     if (seconds > 0) $('countdown-number').textContent = String(seconds);
     else {
       clearInterval(countdownTimer); countdownTimer = null; $('countdown').hidden = true;
-      if (state?.playback === 'playing' && state?.current) player.playVideo();
+      if (state?.playback === 'playing' && state?.current) player.loadVideoById(state.current.videoId);
     }
   }, 1000);
 }
@@ -172,13 +181,13 @@ function syncPlayer() {
   const id = state.current.videoId;
   if (!player) {
     player = new YT.Player('player', { videoId: id, playerVars: { playsinline: 1, rel: 0, origin: location.origin }, events: {
-      onReady: () => { playerReady = true; shownItemId = state.current?.id; player.cueVideoById(state.current?.videoId || id); if (state.playback === 'playing') player.playVideo(); },
+      onReady: () => { playerReady = true; shownItemId = state.current?.id; if (state?.current && state.playback === 'playing') player.loadVideoById(state.current.videoId); else player.cueVideoById(state?.current?.videoId || id); },
       onStateChange: async e => {
-        if (e.data === YT.PlayerState.PLAYING) { fallback = null; autoplayBlocked = false; $('start-btn').hidden = true; note(''); }
-        if (e.data === YT.PlayerState.ENDED && !advancing) { advancing = true; try { await hostPost('/api/next'); } catch (err) { note(err.message); advancing = false; } }
+        if (e.data === YT.PlayerState.PLAYING) { fallback = null; autoplayBlocked = false; actuallyPlaying = true; $('start-btn').hidden = true; note(''); }
+        if (e.data === YT.PlayerState.ENDED && !advancing && state?.current) { advancing = true; try { await roomPost('next'); } catch (err) { note(err.message); advancing = false; } }
       },
       onError: e => { if ([5, 100, 101, 150, 153].includes(e.data)) tryAnotherVersion(e.data); else note('This video cannot play here. Choose another karaoke version on the phone.'); },
-      onAutoplayBlocked: () => { autoplayBlocked = true; $('start-btn').hidden = false; note('Your TV browser needs a tap to allow playback.'); }
+      onAutoplayBlocked: () => { autoplayBlocked = true; actuallyPlaying = false; $('start-btn').hidden = false; note('Your TV browser needs a tap to allow playback.'); }
     }});
     shownItemId = state.current.id;
   } else if (playerReady && shownItemId !== state.current.id) {
@@ -196,7 +205,7 @@ $('start-btn').onclick = async () => {
       if (!audioContext && (window.AudioContext || window.webkitAudioContext)) audioContext = new (window.AudioContext || window.webkitAudioContext)();
       if (audioContext?.state === 'suspended') audioContext.resume();
     } catch {}
-    player.playVideo(); await hostPost('/api/playback', { playback: 'playing' }); note('');
+    player.playVideo(); await roomPost('play'); note('');
   } catch { note('Playback could not start. Try again.'); }
 };
 $('skip-btn').onclick = async () => { try { await hostPost('/api/next'); } catch (e) { note(e.message); } };
